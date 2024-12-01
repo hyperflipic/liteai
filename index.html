@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI导航 - 你的人工智能资源中心</title>
+    <title>liteai.top</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Vue 3 -->
@@ -31,6 +31,10 @@
         body.light-theme .network-tools {
             background-color: rgba(255, 255, 255, 0.95);
             border: 1px solid rgba(0, 0, 0, 0.1);
+            color: #000000;  /* 亮色模式下的文字颜色 */
+        }
+        body.light-theme .network-tools a {
+            color: #2563eb;  /* 亮色模式下的链接颜色 */
         }
         body.light-theme .chat-container {
             background-color: #ffffff;
@@ -97,6 +101,7 @@
             backdrop-filter: blur(8px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            color: #ffffff;  /* 暗色模式下的文字颜色 */
         }
         /* 过渡动画 */
         .fade-enter-active,
@@ -343,6 +348,25 @@
         body:not(.light-theme) .max-w-xl {
             color: #e5e7eb;
         }
+        
+        :root[data-theme="light"] {
+            --bg-color: #f0f0f0;
+            --text-color: #333333;
+            --card-bg: #ffffff;
+            --hover-color: #e0e0e0;
+            --desc-bg: #ffffff;
+        }
+        
+        body.light-theme .card {
+            background-color: #f3f4f6;
+        }
+        
+        /* 亮色模式下二维码反色 */
+        body.light-theme .qr-code {
+            filter: invert(1);
+        }
+        
+        /* 暗色模式保持原样 */
     </style>
 </head>
 <body>
@@ -486,30 +510,31 @@
                     <a href="#" class="hover:text-gray-300 transition-colors">{{ t.nav.apiComparison }}</a>
                 </nav>
 
-                <!-- 二维码区域 -->
-                <div class="flex items-center justify-center space-x-4">
-                    <a href="#" class="hover:text-gray-300 transition-colors text-lg">{{ t.nav.joinGroup }}</a>
-                    <img src="图片1.png" alt="QR Code" class="w-32 h-32">
-                </div>
-
                 <!-- 网络工具弹出内容 -->
                 <transition name="fade">
-                    <div v-if="showNetworkTools" class="mt-4 p-6 rounded-lg max-w-md mx-auto network-tools">
-                        <div class="text-gray-300 space-y-4">
+                    <div v-if="showNetworkTools" class="mt-4 mb-6 p-6 rounded-lg mx-auto network-tools" style="max-width: 280px;">
+                        <div class="space-y-4">
                             <div class="flex items-center justify-between">
                                 <p class="text-lg font-semibold mb-4">{{ t.networkToolsPopup.title }}</p>
-                                <button @click="showNetworkTools = false" class="text-gray-400 hover:text-gray-200 transition-colors">
+                                <button @click="showNetworkTools = false" class="text-gray-400 hover:text-gray-200">
                                     <i class="fas fa-times"></i>
                                 </button>
                             </div>
-                            <div class="space-y-3">
-                                <p>{{ t.networkToolsPopup.android }}：<a href="https://goflyvpn.com/" target="_blank" class="text-gray-300 hover:opacity-80">https://goflyvpn.com/</a></p>
-                                <p>{{ t.networkToolsPopup.windows }}：<a href="https://wjkc123.com/" target="_blank" class="text-gray-300 hover:opacity-80">https://wjkc123.com/</a></p>
-                                <p class="text-sm text-gray-400">{{ t.networkToolsPopup.instruction }}</p>
+                            <div v-for="(tool, index) in t.networkToolsPopup.tools" :key="index" class="flex items-center justify-between">
+                                <span>{{ tool.name }}</span>
+                                <a :href="tool.link" target="_blank" class="text-blue-500 hover:text-blue-400">
+                                    {{ t.networkToolsPopup.openLink }}
+                                </a>
                             </div>
                         </div>
                     </div>
                 </transition>
+
+                <!-- 二维码区域 -->
+                <div class="flex items-center justify-center space-x-4">
+                    <a href="#" class="hover:text-gray-300 transition-colors text-lg">{{ t.nav.joinGroup }}</a>
+                    <img src="图片1.png" alt="QR Code" class="w-32 h-32 qr-code">
+                </div>
             </div>
         </footer>
         <!-- 聊天框 -->
@@ -546,15 +571,15 @@
         // 语言数据
         const translations = {
             zh: {
-                title: 'AI导航 - 你的人工智能资源中心',
+                title: 'liteai.top' ,
                 subtitle: '发现、探索和使用最新的AI工具',
                 dialog: {
                     title: '对话',
-                    desc: '使用先进的语言模型与AI进行自然对话。支持中英文交互，可以进行知识问答、创意写作、代码编程等多种任务。'
+                    desc: '像微信一样的聊天框，回答你的问题跟你聊天。如果你首次听说或者使用ai，应当首先学着使用它，因为它可以教你使用其他的工具。。'
                 },
                 ppt: {
-                    title: 'PPT生成',
-                    desc: '快速生成专业的PPT演示文稿。支持多种主题模板，自动排版和设计，让你的演示更具吸引力。'
+                    title: 'PPT',
+                    desc: '动态演示，点一下翻一页，演讲、总结、讲座、发布会用'
                 },
                 image: {
                     title: '图像',
@@ -577,8 +602,11 @@
                 networkTools: '网络工具',
                 networkToolsPopup: {
                     title: '网络工具',
-                    android: '安卓手机',
-                    windows: 'Windows',
+                    tools: [
+                        { name: '安卓手机', link: 'https://goflyvpn.com/' },
+                        { name: 'Windows', link: 'https://wjkc123.com/' }
+                    ],
+                    openLink: '打开链接',
                     instruction: '选第一个flclash，页面上有安装和使用教程。网络在外面以后可以找更好用的'
                 },
                 nav: {
@@ -622,8 +650,11 @@
                 networkTools: 'Network Tools',
                 networkToolsPopup: {
                     title: 'Network Tools',
-                    android: 'Android',
-                    windows: 'Windows',
+                    tools: [
+                        { name: 'Android', link: 'https://goflyvpn.com/' },
+                        { name: 'Windows', link: 'https://wjkc123.com/' }
+                    ],
+                    openLink: 'Open Link',
                     instruction: 'Choose the first option \'flclash\'. Installation and usage guides are available on the page. You can find better alternatives later when abroad.'
                 },
                 nav: {
