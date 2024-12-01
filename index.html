@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI导航 - 你的人工智能资源中心</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- 字体图标 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css">
+    <style>
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        body.light-theme {
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+        body.light-theme .card,
+        body.light-theme .card-bg {
+            background-color: #ffffff;
+            transition: background-color 0.3s ease;
+        }
+        body.light-theme .card-hover-bg {
+            background-color: #f9fafb;
+        }
+        body.light-theme .network-tools {
+            background-color: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        body.light-theme .chat-container {
+            background-color: #ffffff;
+        }
+        body.light-theme .chat-header {
+            background-color: #f8fafc;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        body.light-theme .chat-input {
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        body.light-theme .chat-input input {
+            background-color: #f8fafc;
+            color: #1f2937;
+        }
+        body.light-theme .ai-message {
+            background-color: #f8fafc;
+            color: #1f2937;
+        }
+        body.light-theme .intro-text {
+            color: #4b5563;
+        }
+        body.light-theme .card h2 {
+            color: #374151;  
+            font-weight: 600;
+        }
+        body.light-theme .card a {
+            color: #2563eb;  
+            text-decoration: none;
+        }
+        body.light-theme .card a:hover {
+            color: #1d4ed8;  
+        }
+        .card-hover {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+        .card-bg {
+            background-color: #1e1e1e;
+            transition: background-color 0.3s ease;
+        }
+        .card-hover-bg {
+            background-color: #2a2a2a;
+        }
+        .card-bg a {
+            transition: opacity 0.2s ease;
+        }
+        .card-bg a:hover {
+            opacity: 0.8;
+        }
+        .card-bg a div {
+            color: #e0e0e0;  
+            transition: opacity 0.2s ease;
+        }
+        .card-bg a:hover div {
+            opacity: 0.8;
+        }
+        /* 网络工具弹出框样式 */
+        .network-tools {
+            background-color: rgba(30, 30, 30, 0.95);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        /* 过渡动画 */
+        .fade-enter-active,
+        .fade-leave-active {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .fade-enter-from,
+        .fade-leave-to {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        /* 修改高亮动画样式 */
+        @keyframes highlightCard {
+            0% { transform: scale(1); background-color: #1e1e1e; opacity: 1; }
+            100% { transform: scale(1.2); background-color: #2a2a2a; opacity: 1; }
+        }
+        @keyframes shrinkCard {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(0.8); opacity: 0.6; }
+        }
+        @keyframes restoreCard {
+            0% { transform: scale(1.2); background-color: #2a2a2a; opacity: 1; }
+            100% { transform: scale(1); background-color: #1e1e1e; opacity: 1; }
+        }
+        @keyframes expandCard {
+            0% { transform: scale(0.8); opacity: 0.6; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .highlight-animation {
+            animation: highlightCard 0.5s ease-out forwards;
+            z-index: 10;
+        }
+        .shrink-animation {
+            animation: shrinkCard 0.5s ease-out forwards;
+        }
+        .restore-animation {
+            animation: restoreCard 0.5s ease-out forwards;
+            z-index: 1;
+        }
+        .expand-animation {
+            animation: expandCard 0.5s ease-out forwards;
+        }
+        .card-normal {
+            transform: scale(1);
+            box-shadow: 0 0 0 rgba(59, 130, 246, 0);
+            opacity: 1;
+            transition: all 0.5s ease-out;
+            z-index: 1;
+        }
+        .intro-text {
+            display: none;
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 0.5rem;
+            font-size: 0.95rem;
+            line-height: 1.8;
+            color: #9ca3af;
+            margin-bottom: 1.5rem;
+            transition: opacity 0.3s ease;
+        }
+        .show-intro .intro-text {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        /* 聊天框样式 */
+        .chat-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            overflow: hidden;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .chat-container.hidden {
+            transform: translateY(100%);
+            opacity: 0;
+        }
+        .chat-header {
+            padding: 12px 16px;
+            background-color: #2a2a2a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .chat-messages {
+            height: 300px;
+            overflow-y: auto;
+            padding: 16px;
+        }
+        .message {
+            margin-bottom: 12px;
+            max-width: 80%;
+        }
+        .user-message {
+            margin-left: auto;
+            background-color: #3b82f6;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 12px 12px 2px 12px;
+        }
+        .ai-message {
+            margin-right: auto;
+            background-color: #2a2a2a;
+            color: #e0e0e0;
+            padding: 8px 12px;
+            border-radius: 12px 12px 12px 2px;
+        }
+        .chat-input {
+            padding: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            gap: 8px;
+        }
+        .chat-input input {
+            flex: 1;
+            background-color: #2a2a2a;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: #e0e0e0;
+            outline: none;
+        }
+        .chat-input input:focus {
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+        }
+        .chat-input button {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .chat-input button:hover {
+            background-color: #2563eb;
+        }
+        .chat-input button:disabled {
+            background-color: #6b7280;
+            cursor: not-allowed;
+        }
+        .chat-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #3b82f6;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s ease;
+            z-index: 999;
+            opacity: 0;  /* 设置为完全透明 */
+            pointer-events: none;  /* 禁用鼠标事件 */
+        }
+        .chat-toggle:hover {
+            transform: scale(1.05);
+        }
+        .card {
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 10px;
+            width: 280px;
+            transition: all 0.3s ease;
+            position: relative;
+            cursor: pointer;
+        }
+        .card-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        /* 语言切换按钮样式 */
+        .lang-switch {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #2a2a2a;
+            color: #e0e0e0;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            z-index: 1000;
+        }
+        .lang-switch:hover {
+            background-color: #3b3b3b;
+        }
+        .theme-switch {
+            position: fixed;
+            top: 20px;
+            right: 80px;
+            background-color: transparent;
+            padding: 8px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+        }
+        .theme-switch:hover {
+            transform: scale(1.1);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        body.light-theme .theme-switch:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+        body.light-theme h1.text-4xl {
+            color: #1f2937;  /* 深灰色 */
+        }
+
+        body.light-theme .max-w-xl {
+            color: #4b5563;  /* 中灰色，用于副标题 */
+        }
+
+        /* 暗色模式保持原样 */
+        body:not(.light-theme) h1.text-4xl {
+            color: #f3f4f6;
+        }
+
+        body:not(.light-theme) .max-w-xl {
+            color: #e5e7eb;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="min-h-screen">
+        <div class="lang-switch" @click="toggleLang">
+            {{ currentLang === 'zh' ? 'EN' : '中' }}
+        </div>
+        <div class="theme-switch" @click="toggleTheme" :title="isDarkTheme ? '切换到亮色主题' : '切换到暗色主题'">
+            <i :class="['fas', isDarkTheme ? 'fa-sun' : 'fa-moon', isDarkTheme ? 'text-white' : 'text-gray-800']"></i>
+        </div>
+        <header class="py-8 text-center">
+            <h1 class="text-4xl font-bold mb-4 text-gray-100">{{ t.title }}</h1>
+            <div class="max-w-xl mx-auto px-4">
+                <button @click="toggleUnderstand" class="bg-blue-700 text-gray-100 px-6 py-2 rounded-full hover:bg-blue-800 transition-colors">
+                    <i class="fas" :class="understood ? 'fa-check' : 'fa-question'"></i>
+                    <span class="ml-2">{{ understood ? '明白了' : t.dontUnderstand }}</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="container mx-auto px-4 py-8">
+            <div class="card-container">
+                <!-- 对话 -->
+                <div id="dialog-card" class="card rounded-xl p-4 card-hover card-normal transform transition-all duration-500" :class="{ 'show-intro': understood }">
+                    <h2 class="text-xl font-semibold mb-2 text-gray-300 text-center">{{ t.dialog.title }}</h2>
+                    <div class="intro-text mb-4">
+                        {{ t.dialog.desc }}
+                    </div>
+                    <div class="space-y-2">
+                        <a href="https://chat.openai.com" target="_blank" 
+                           class="block p-2 rounded-lg hover:opacity-80 transition-colors text-center text-blue-500">
+                            <div>ChatGPT</div>
+                        </a>
+                        <a href="https://claude.ai" target="_blank"
+                           class="block p-2 rounded-lg hover:opacity-80 transition-colors text-center text-blue-500">
+                            <div>Claude</div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 图像 -->
+                <div class="card rounded-xl p-4 card-hover card-normal transform transition-all duration-500" :class="{ 'show-intro': understood }">
+                    <h2 class="text-xl font-semibold mb-2 text-gray-300 text-center">{{ t.image.title }}</h2>
+                    <div class="intro-text mb-4">
+                        {{ t.image.desc }}
+                    </div>
+                    <div class="space-y-2">
+                        <a href="https://www.recraft.ai" target="_blank"
+                           class="block p-2 rounded-lg hover:opacity-80 transition-colors text-center text-blue-500">
+                            <div>Recraft</div>
+                        </a>
+                        <a href="https://flux.ai" target="_blank"
+                           class="block p-2 rounded-lg hover:opacity-80 transition-colors text-center text-blue-500">
+                            <div>Flux</div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 音乐 -->
+                <div class="card rounded-xl p-4 card-hover card-normal transform transition-all duration-500" :class="{ 'show-intro': understood }">
+                    <h2 class="text-xl font-semibold mb-2 text-gray-300 text-center">{{ t.music.title }}</h2>
+                    <div class="intro-text mb-4">
+                        {{ t.music.desc }}
+                    </div>
+                    <div class="space-y-2">
+                        <a href="https://suno.ai" target="_blank"
+                           class="block p-2 rounded-lg hover:opacity-80 transition-colors text-center text-blue-500">
+                            <div>Suno</div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 视频 -->
+                <div class="card rounded-xl p-4 card-hover card-normal transform transition-all duration-500" :class="{ 'show-intro': understood }">
+                    <h2 class="text-xl font-semibold mb-2 text-gray-300 text-center">{{ t.video.title }}</h2>
+                    <div class="intro-text mb-4">
+                        {{ t.video.desc }}
+                    </div>
+                    <div class="space-y-2">
+                        <a href="https://runway.ml" target="_blank"
+                           class="block p-2 rounded-lg hover:opacity-80 transition-colors text-center text-blue-500">
+                            <div>Runway</div>
+                        </a>
+                        <a href="#" target="_blank"
+                           class="block p-2 rounded-lg hover:opacity-80 transition-colors text-center text-blue-500">
+                            <div>可灵</div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 开发 -->
+                <div class="card rounded-xl p-4 card-hover card-normal transform transition-all duration-500" :class="{ 'show-intro': understood }">
+                    <h2 class="text-xl font-semibold mb-2 text-gray-300 text-center">{{ t.dev.title }}</h2>
+                    <div class="intro-text mb-4">
+                        {{ t.dev.desc }}
+                    </div>
+                    <div class="space-y-2">
+                        <a href="https://v0.dev" target="_blank"
+                           class="block p-2 rounded-lg hover:opacity-80 transition-colors text-center text-blue-500">
+                            <div>v0</div>
+                        </a>
+                        <a href="https://cursor.sh" target="_blank"
+                           class="block p-2 rounded-lg hover:opacity-80 transition-colors text-center text-blue-500">
+                            <div>cursor</div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- PPT -->
+                <div class="card rounded-xl p-4 card-hover card-normal transform transition-all duration-500" :class="{ 'show-intro': understood }">
+                    <h2 class="text-xl font-semibold mb-2 text-gray-300 text-center">{{ t.ppt.title }}</h2>
+                    <div class="intro-text mb-4">
+                        {{ t.ppt.desc }}
+                    </div>
+                    <div class="space-y-2">
+                        <a href="https://gamma.app" target="_blank"
+                           class="block p-2 rounded-lg hover:opacity-80 transition-colors text-center text-blue-500">
+                            <div>Gamma</div>
+                        </a>
+                        <a href="https://www.inslide.com" target="_blank"
+                           class="block p-2 rounded-lg hover:opacity-80 transition-colors text-center text-blue-500">
+                            <div>Inslide</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="py-8 text-center text-gray-500">
+            <div class="container mx-auto px-4">
+                <nav class="mb-6 flex justify-center space-x-6">
+                    <a href="#" @click.prevent="showNetworkTools = !showNetworkTools" 
+                       class="hover:text-gray-300 transition-colors relative">
+                        {{ t.networkTools }}
+                        <span v-if="showNetworkTools" class="absolute -bottom-1 left-0 w-full h-0.5 bg-blue-500"></span>
+                    </a>
+                    <a href="#" class="hover:text-gray-300 transition-colors">{{ t.nav.tutorial }}</a>
+                    <a href="#" class="hover:text-gray-300 transition-colors">{{ t.nav.community }}</a>
+                    <a href="#" class="hover:text-gray-300 transition-colors">{{ t.nav.faq }}</a>
+                    <a href="#" class="hover:text-gray-300 transition-colors">{{ t.nav.modelComparison }}</a>
+                    <a href="#" class="hover:text-gray-300 transition-colors">{{ t.nav.apiComparison }}</a>
+                </nav>
+
+                <!-- 二维码区域 -->
+                <div class="flex items-center justify-center space-x-4">
+                    <a href="#" class="hover:text-gray-300 transition-colors text-lg">{{ t.nav.joinGroup }}</a>
+                    <img src="图片1.png" alt="QR Code" class="w-32 h-32">
+                </div>
+
+                <!-- 网络工具弹出内容 -->
+                <transition name="fade">
+                    <div v-if="showNetworkTools" class="mt-4 p-6 rounded-lg max-w-md mx-auto network-tools">
+                        <div class="text-gray-300 space-y-4">
+                            <div class="flex items-center justify-between">
+                                <p class="text-lg font-semibold mb-4">{{ t.networkToolsPopup.title }}</p>
+                                <button @click="showNetworkTools = false" class="text-gray-400 hover:text-gray-200 transition-colors">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="space-y-3">
+                                <p>{{ t.networkToolsPopup.android }}：<a href="https://goflyvpn.com/" target="_blank" class="text-gray-300 hover:opacity-80">https://goflyvpn.com/</a></p>
+                                <p>{{ t.networkToolsPopup.windows }}：<a href="https://wjkc123.com/" target="_blank" class="text-gray-300 hover:opacity-80">https://wjkc123.com/</a></p>
+                                <p class="text-sm text-gray-400">{{ t.networkToolsPopup.instruction }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </transition>
+            </div>
+        </footer>
+        <!-- 聊天框 -->
+        <div class="chat-toggle" @click="toggleChat">
+            <i class="fas" :class="[showChat ? 'fa-times' : 'fa-comments']"></i>
+        </div>
+        <div class="chat-container" :class="{ hidden: !showChat }">
+            <div class="chat-header">
+                <h3 class="text-gray-200 font-medium">{{ t.chat }}</h3>
+                <button @click="toggleChat" class="text-gray-400 hover:text-gray-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="chat-messages" ref="messagesContainer">
+                <div v-for="(message, index) in messages" :key="index" 
+                     class="message" :class="message.type === 'user' ? 'user-message' : 'ai-message'">
+                    {{ message.content }}
+                </div>
+            </div>
+            <div class="chat-input">
+                <input type="text" v-model="userInput" 
+                       @keyup.enter="sendMessage"
+                       placeholder="输入消息..." 
+                       :disabled="loading">
+                <button @click="sendMessage" :disabled="loading || !userInput.trim()">
+                    <i class="fas" :class="[loading ? 'fa-spinner fa-spin' : 'fa-paper-plane']"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue
+        // 语言数据
+        const translations = {
+            zh: {
+                title: 'AI导航 - 你的人工智能资源中心',
+                subtitle: '发现、探索和使用最新的AI工具',
+                dialog: {
+                    title: '对话',
+                    desc: '使用先进的语言模型与AI进行自然对话。支持中英文交互，可以进行知识问答、创意写作、代码编程等多种任务。'
+                },
+                ppt: {
+                    title: 'PPT生成',
+                    desc: '快速生成专业的PPT演示文稿。支持多种主题模板，自动排版和设计，让你的演示更具吸引力。'
+                },
+                image: {
+                    title: '图像',
+                    desc: '跟照片一样的画面，你用文字要求，而他将会给你画出来。'
+                },
+                music: {
+                    title: '音乐',
+                    desc: '为你写歌，或者伴奏，也可以你写词它为你谱曲。'
+                },
+                video: {
+                    title: '视频',
+                    desc: '跟抖音一样的会动的画面，不用拍摄，你可以用文字或者画面描述，他给你画出来。'
+                },
+                dev: {
+                    title: '开发',
+                    desc: '写代码也叫程序，做像抖音微信一样的app，或者网页，或者电脑上的软件。'
+                },
+                dontUnderstand: '看不懂',
+                chat: '聊天/反馈',
+                networkTools: '网络工具',
+                networkToolsPopup: {
+                    title: '网络工具',
+                    android: '安卓手机',
+                    windows: 'Windows',
+                    instruction: '选第一个flclash，页面上有安装和使用教程。网络在外面以后可以找更好用的'
+                },
+                nav: {
+                    tutorial: '教程',
+                    community: '社区',
+                    faq: '常见问题',
+                    modelComparison: '模型对比',
+                    apiComparison: 'api性价比',
+                    joinGroup: '加入内测群'
+                }
+            },
+            en: {
+                title: 'AI Navigation - Your AI Resource Center',
+                subtitle: 'Making AI tools accessible to everyone',
+                dialog: {
+                    title: 'Chat',
+                    desc: 'Engage in natural conversations with advanced language models. Supporting both Chinese and English interactions for knowledge Q&A, creative writing, coding, and more.'
+                },
+                ppt: {
+                    title: 'PPT Generation',
+                    desc: 'Quickly generate professional presentations. Supporting various themes and templates with automatic layout and design to make your presentations more engaging.'
+                },
+                image: {
+                    title: 'Image',
+                    desc: 'Like photos, you describe what you want with text, and it will create the image for you.'
+                },
+                music: {
+                    title: 'Music',
+                    desc: 'Writes songs, creates accompaniment, or composes music for your lyrics.'
+                },
+                video: {
+                    title: 'Video',
+                    desc: 'Like TikTok videos, no filming needed. Just describe with text or images, and it creates the video.'
+                },
+                dev: {
+                    title: 'Development',
+                    desc: 'Writing code or programs to create apps like TikTok and WeChat, websites, or computer software.'
+                },
+                dontUnderstand: "Don't Understand",
+                chat: 'Chat/Feedback',
+                networkTools: 'Network Tools',
+                networkToolsPopup: {
+                    title: 'Network Tools',
+                    android: 'Android',
+                    windows: 'Windows',
+                    instruction: 'Choose the first option \'flclash\'. Installation and usage guides are available on the page. You can find better alternatives later when abroad.'
+                },
+                nav: {
+                    tutorial: 'Tutorial',
+                    community: 'Community',
+                    faq: 'FAQ',
+                    modelComparison: 'Model Comparison',
+                    apiComparison: 'API Cost-Performance',
+                    joinGroup: 'Join Beta Group'
+                }
+            }
+        }
+
+        createApp({
+            data() {
+                return {
+                    currentLang: this.detectLanguage(),
+                    understood: false,
+                    showNetworkTools: false,
+                    showChat: false,
+                    messages: [],
+                    userInput: '',
+                    loading: false,
+                    isDarkTheme: localStorage.getItem('theme') !== 'light',
+                    translations: translations
+                }
+            },
+            computed: {
+                t() {
+                    return this.translations[this.currentLang];
+                }
+            },
+            methods: {
+                detectLanguage() {
+                    const lang = navigator.language.toLowerCase();
+                    return lang.startsWith('zh') ? 'zh' : 'en';
+                },
+                toggleLang() {
+                    this.currentLang = this.currentLang === 'zh' ? 'en' : 'zh';
+                },
+                toggleUnderstand() {
+                    this.understood = !this.understood;
+                },
+                highlightDialogCard() {
+                    const dialogCard = document.getElementById('dialog-card');
+                    const otherCards = document.querySelectorAll('.card:not(#dialog-card)');
+                    
+                    dialogCard.classList.remove('card-normal');
+                    dialogCard.classList.add('highlight-animation');
+                    
+                    otherCards.forEach(card => {
+                        card.classList.remove('card-normal');
+                        card.classList.add('shrink-animation');
+                    });
+                    
+                    setTimeout(() => {
+                        dialogCard.classList.remove('highlight-animation');
+                        dialogCard.classList.add('restore-animation');
+                        
+                        otherCards.forEach(card => {
+                            card.classList.remove('shrink-animation');
+                            card.classList.add('expand-animation');
+                        });
+                        
+                        setTimeout(() => {
+                            dialogCard.classList.remove('restore-animation');
+                            dialogCard.classList.add('card-normal');
+                            
+                            otherCards.forEach(card => {
+                                card.classList.remove('expand-animation');
+                                card.classList.add('card-normal');
+                            });
+                        }, 500);
+                    }, 2000);
+                },
+                resetCards() {
+                    const dialogCard = document.getElementById('dialog-card');
+                    const otherCards = document.querySelectorAll('.card:not(#dialog-card)');
+                    
+                    if (dialogCard) {
+                        dialogCard.classList.remove('highlight-animation', 'restore-animation');
+                        dialogCard.classList.add('card-normal');
+                    }
+                    
+                    otherCards.forEach(card => {
+                        card.classList.remove('shrink-animation', 'expand-animation');
+                        card.classList.add('card-normal');
+                    });
+                },
+                async sendMessage() {
+                    if (!this.userInput.trim()) return;
+                    
+                    const userMessage = this.userInput.trim();
+                    this.messages.push({ text: userMessage, type: 'user' });
+                    this.userInput = '';
+                    this.loading = true;
+                    
+                    try {
+                        const response = await fetch('http://localhost:8000/chat', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ message: userMessage })
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        
+                        const data = await response.json();
+                        this.messages.push({ text: data.reply, type: 'ai' });
+                    } catch (error) {
+                        console.error('Error:', error);
+                        this.messages.push({ 
+                            text: '抱歉，发生了错误。请稍后再试。', 
+                            type: 'ai' 
+                        });
+                    } finally {
+                        this.loading = false;
+                        this.$nextTick(() => {
+                            this.scrollToBottom();
+                        });
+                    }
+                },
+                toggleChat() {
+                    this.showChat = !this.showChat;
+                    if (this.showChat && this.messages.length === 0) {
+                        this.messages.push({ 
+                            text: '这里本来是个反馈/聊天的窗口，但我不会做。当我要移除这个按钮的时候页面全乱了，所以我只能先保留', 
+                            type: 'ai' 
+                        });
+                    }
+                },
+                scrollToBottom() {
+                    const container = this.$refs.messagesContainer;
+                    container.scrollTop = container.scrollHeight;
+                },
+                toggleTheme() {
+                    this.isDarkTheme = !this.isDarkTheme;
+                    document.body.classList.toggle('light-theme', !this.isDarkTheme);
+                    localStorage.setItem('theme', this.isDarkTheme ? 'dark' : 'light');
+                }
+            },
+            mounted() {
+                // 初始化主题
+                if (!this.isDarkTheme) {
+                    document.body.classList.add('light-theme');
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>
