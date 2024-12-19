@@ -284,6 +284,8 @@
             transition: all 0.3s ease;
             position: relative;
             cursor: pointer;
+            max-width: 280px;
+            margin: 0 auto;
         }
         .card-container {
             display: grid;
@@ -367,22 +369,27 @@
         }
         
         /* 暗色模式保持原样 */
+        .highlight-card {
+            background: linear-gradient(145deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05));
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1), 0 2px 4px -1px rgba(59, 130, 246, 0.06);
+        }
     </style>
 </head>
 <body>
-    <div id="app" class="min-h-screen">
+    <div id="app" class="min-h-screen grid grid-cols-1 xs:grid-cols-2 gap-4">
         <div class="lang-switch" @click="toggleLang">
             {{ currentLang === 'zh' ? 'EN' : '中' }}
         </div>
         <div class="theme-switch" @click="toggleTheme" :title="isDarkTheme ? '切换到亮色主题' : '切换到暗色主题'">
             <i :class="['fas', isDarkTheme ? 'fa-sun' : 'fa-moon', isDarkTheme ? 'text-white' : 'text-gray-800']"></i>
         </div>
-        <header class="py-8 text-center">
-            <h1 class="text-4xl font-bold mb-4 text-gray-100">{{ t.title }}</h1>
+        <header class="py-4 text-center mt-12">
+            <h1 class="text-4xl font-bold mb-2 text-gray-100">{{ t.title }}</h1>
             <div class="max-w-xl mx-auto px-4">
                 <button @click="toggleUnderstand" class="bg-blue-700 text-gray-100 px-6 py-2 rounded-full hover:bg-blue-800 transition-colors">
                     <i class="fas" :class="understood ? 'fa-check' : 'fa-question'"></i>
-                    <span class="ml-2">{{ understood ? '明白了' : t.dontUnderstand }}</span>
+                    <span class="ml-2">{{ understood ? t.understood : t.dontUnderstand }}</span>
                 </button>
             </div>
         </header>
@@ -390,105 +397,91 @@
         <main class="container mx-auto px-4 py-8">
             <div class="card-container">
                 <!-- 对话 -->
-                <div id="dialog-card" class="card rounded-xl p-4 card-hover card-normal transform transition-all duration-500" :class="{ 'show-intro': understood }">
+                <div id="dialog-card" class="card rounded-xl p-4 card-hover card-normal transform transition-all duration-500 max-w-xs mx-auto" :class="{ 'show-intro': understood, 'highlight-card': understood }">
                     <h2 class="text-xl font-semibold mb-2 text-gray-300 text-center">{{ t.dialog.title }}</h2>
                     <div class="intro-text mb-4">
                         {{ t.dialog.desc }}
                     </div>
                     <div class="space-y-2">
-                        <a href="https://chat.openai.com" target="_blank" 
+                        <a v-for="tool in t.dialog.tools" :key="tool.name" :href="tool.link" target="_blank" 
                            class="block p-2 rounded-lg hover:opacity-80 transition-colors text-center text-blue-500">
-                            <div>ChatGPT</div>
-                        </a>
-                        <a href="https://claude.ai" target="_blank"
-                           class="block p-2 rounded-lg hover:opacity-80 transition-colors text-center text-blue-500">
-                            <div>Claude</div>
+                            <div>{{ tool.name }}</div>
+                            <div class="text-sm text-gray-400 mt-1" v-if="understood">{{ tool.description }}</div>
                         </a>
                     </div>
                 </div>
 
                 <!-- 图像 -->
-                <div class="card rounded-xl p-4 card-hover card-normal transform transition-all duration-500" :class="{ 'show-intro': understood }">
+                <div class="card rounded-xl p-4 card-hover card-normal transform transition-all duration-500 max-w-xs mx-auto" :class="{ 'show-intro': understood }">
                     <h2 class="text-xl font-semibold mb-2 text-gray-300 text-center">{{ t.image.title }}</h2>
                     <div class="intro-text mb-4">
                         {{ t.image.desc }}
                     </div>
                     <div class="space-y-2">
-                        <a href="https://www.recraft.ai" target="_blank"
+                        <a v-for="tool in t.image.tools" :key="tool.name" :href="tool.link" target="_blank"
                            class="block p-2 rounded-lg hover:opacity-80 transition-colors text-center text-blue-500">
-                            <div>Recraft</div>
-                        </a>
-                        <a href="https://flux.ai" target="_blank"
-                           class="block p-2 rounded-lg hover:opacity-80 transition-colors text-center text-blue-500">
-                            <div>Flux</div>
+                            <div>{{ tool.name }}</div>
+                            <div class="text-sm text-gray-400 mt-1" v-if="understood">{{ tool.description }}</div>
                         </a>
                     </div>
                 </div>
 
-                <!-- 音乐 -->
-                <div class="card rounded-xl p-4 card-hover card-normal transform transition-all duration-500" :class="{ 'show-intro': understood }">
+                <!-- 声音 -->
+                <div class="card rounded-xl p-4 card-hover card-normal transform transition-all duration-500 max-w-xs mx-auto" :class="{ 'show-intro': understood }">
                     <h2 class="text-xl font-semibold mb-2 text-gray-300 text-center">{{ t.music.title }}</h2>
                     <div class="intro-text mb-4">
                         {{ t.music.desc }}
                     </div>
                     <div class="space-y-2">
-                        <a href="https://suno.ai" target="_blank"
+                        <a v-for="tool in t.music.tools" :key="tool.name" :href="tool.link" target="_blank"
                            class="block p-2 rounded-lg hover:opacity-80 transition-colors text-center text-blue-500">
-                            <div>Suno</div>
+                            <div>{{ tool.name }}</div>
+                            <div class="text-sm text-gray-400 mt-1" v-if="understood">{{ tool.description }}</div>
                         </a>
                     </div>
                 </div>
 
                 <!-- 视频 -->
-                <div class="card rounded-xl p-4 card-hover card-normal transform transition-all duration-500" :class="{ 'show-intro': understood }">
+                <div class="card rounded-xl p-4 card-hover card-normal transform transition-all duration-500 max-w-xs mx-auto" :class="{ 'show-intro': understood }">
                     <h2 class="text-xl font-semibold mb-2 text-gray-300 text-center">{{ t.video.title }}</h2>
                     <div class="intro-text mb-4">
                         {{ t.video.desc }}
                     </div>
                     <div class="space-y-2">
-                        <a href="https://runway.ml" target="_blank"
+                        <a v-for="tool in t.video.tools" :key="tool.name" :href="tool.link" target="_blank"
                            class="block p-2 rounded-lg hover:opacity-80 transition-colors text-center text-blue-500">
-                            <div>Runway</div>
-                        </a>
-                        <a href="#" target="_blank"
-                           class="block p-2 rounded-lg hover:opacity-80 transition-colors text-center text-blue-500">
-                            <div>可灵</div>
+                            <div>{{ tool.name }}</div>
+                            <div class="text-sm text-gray-400 mt-1" v-if="understood">{{ tool.description }}</div>
                         </a>
                     </div>
                 </div>
 
                 <!-- 开发 -->
-                <div class="card rounded-xl p-4 card-hover card-normal transform transition-all duration-500" :class="{ 'show-intro': understood }">
+                <div class="card rounded-xl p-4 card-hover card-normal transform transition-all duration-500 max-w-xs mx-auto" :class="{ 'show-intro': understood }">
                     <h2 class="text-xl font-semibold mb-2 text-gray-300 text-center">{{ t.dev.title }}</h2>
                     <div class="intro-text mb-4">
                         {{ t.dev.desc }}
                     </div>
                     <div class="space-y-2">
-                        <a href="https://v0.dev" target="_blank"
+                        <a v-for="tool in t.dev.tools" :key="tool.name" :href="tool.link" target="_blank"
                            class="block p-2 rounded-lg hover:opacity-80 transition-colors text-center text-blue-500">
-                            <div>v0</div>
-                        </a>
-                        <a href="https://cursor.sh" target="_blank"
-                           class="block p-2 rounded-lg hover:opacity-80 transition-colors text-center text-blue-500">
-                            <div>cursor</div>
+                            <div>{{ tool.name }}</div>
+                            <div class="text-sm text-gray-400 mt-1" v-if="understood">{{ tool.description }}</div>
                         </a>
                     </div>
                 </div>
 
                 <!-- PPT -->
-                <div class="card rounded-xl p-4 card-hover card-normal transform transition-all duration-500" :class="{ 'show-intro': understood }">
+                <div class="card rounded-xl p-4 card-hover card-normal transform transition-all duration-500 max-w-xs mx-auto" :class="{ 'show-intro': understood }">
                     <h2 class="text-xl font-semibold mb-2 text-gray-300 text-center">{{ t.ppt.title }}</h2>
                     <div class="intro-text mb-4">
                         {{ t.ppt.desc }}
                     </div>
                     <div class="space-y-2">
-                        <a href="https://gamma.app" target="_blank"
+                        <a v-for="tool in t.ppt.tools" :key="tool.name" :href="tool.link" target="_blank"
                            class="block p-2 rounded-lg hover:opacity-80 transition-colors text-center text-blue-500">
-                            <div>Gamma</div>
-                        </a>
-                        <a href="https://www.inslide.com" target="_blank"
-                           class="block p-2 rounded-lg hover:opacity-80 transition-colors text-center text-blue-500">
-                            <div>Inslide</div>
+                            <div>{{ tool.name }}</div>
+                            <div class="text-sm text-gray-400 mt-1" v-if="understood">{{ tool.description }}</div>
                         </a>
                     </div>
                 </div>
@@ -573,31 +566,119 @@
             zh: {
                 title: 'liteai.top' ,
                 subtitle: '发现、探索和使用最新的AI工具',
+                understood: '明白了',
+                dontUnderstand: '看不懂',
                 dialog: {
                     title: '对话',
-                    desc: '像微信一样的聊天框，回答你的问题跟你聊天。如果你首次听说或者使用ai，应当首先学着使用它，因为它可以教你使用其他的工具。。'
+                    desc: '这是一个聊天框，像微信一样。ai会和你聊天，也可以教你使用其他工具。',
+                    tools: [
+                        {
+                            name: 'ChatGPT',
+                            link: 'https://chat.openai.com',
+                            description: '更概括 更新 更数学，适合检索/推理'
+                        },
+                        {
+                            name: 'Claude',
+                            link: 'https://claude.ai',
+                            description: '语言理解更强，适合文学/代码'
+                        }
+                    ]
                 },
                 ppt: {
                     title: 'PPT',
-                    desc: '动态演示，点一下翻一页，演讲、总结、讲座、发布会用'
+                    desc: '动态演示，点一下翻一页，演讲、总结、讲座、发布会用',
+                    tools: [
+                        {
+                            name: 'Gamma',
+                            link: 'https://gamma.app',
+                            description: '国外的'
+                        },
+                        {
+                            name: 'Islide',
+                            link: 'https://www.islide.cc/',
+                            description: '国内的'
+                        }
+                    ]
                 },
                 image: {
                     title: '图像',
-                    desc: '跟照片一样的画面，你用文字要求，而他将会给你画出来。'
+                    desc: '跟照片一样的画面，你用文字要求，而他将会给你画出来。',
+                    tools: [
+                        {
+                            name: 'Recraft',
+                            link: 'https://recraft.ai',
+                            description: '目前最强的文生图模型，精准的英文文字海报设计'
+                        },
+                        {
+                            name: 'Flux',
+                            link: 'https://blackforestlabs.ai/',
+                            description: '写实人像'
+                        },
+                        {
+                            name: '即梦',
+                            link: 'https://jimeng.jianying.com/ai-tool/image/generate',
+                            description: '中文文字海报'
+                        }
+                    ]
                 },
                 music: {
-                    title: '音乐',
-                    desc: '为你写歌，或者伴奏，也可以你写词它为你谱曲。'
+                    title: '声音',
+                    desc: '唱歌，或者说话。作词谱曲写音乐，小帅小美 ai孙燕姿 ai雷军',
+                    tools: [
+                        {
+                            name: 'Suno',
+                            link: 'https://suno.ai',
+                            description: '写词和作曲，英文更自然'
+                        },
+                        {
+                            name: '11labs',
+                            link: 'https://elevenlabs.io',
+                            description: '声音克隆，多语言配音'
+                        },
+                        {
+                            name: 'Hailuo',
+                            link: 'https://www.hailuo.ai/audio',
+                            description: '中文配音，适合短视频'
+                        }
+                    ]
                 },
                 video: {
                     title: '视频',
-                    desc: '跟抖音一样的会动的画面，不用拍摄，你可以用文字或者画面描述，他给你画出来。'
+                    desc: '跟抖音一样的会动的画面，不用拍摄，你可以用文字或者画面描述，他给你画出来。',
+                    tools: [
+                        { 
+                            name: 'Sora', 
+                            link: 'https://sora.com', 
+                            description: 'AI视频生成，可以剪辑和做特效。每月20$，高级版200$'
+                        },
+                        { 
+                            name: '可灵', 
+                            link: 'https://klingai.kuaishou.com', 
+                            description: '真实物理规律，写实人物运动'
+                        }
+                    ]
                 },
                 dev: {
                     title: '开发',
-                    desc: '写代码也叫程序，做像抖音微信一样的app，或者网页，或者电脑上的软件。'
+                    desc: '写代码也叫程序，做像抖音微信一样的app，或者网页，或者电脑上的软件。',
+                    tools: [
+                        {
+                            name: 'v0',
+                            link: 'https://v0.dev',
+                            description: '审美很好的前端开发，可以实时预览'
+                        },
+                        {
+                            name: 'bolt.new',
+                            link: 'https://bolt.new',
+                            description: '也能实时预览，能生成比v0更完整的项目环境和文件结构'
+                        },
+                        {
+                            name: 'windsurf',
+                            link: 'https://codeium.com/windsurf',
+                            description: 'ai版vscode，写完整的、需要调用本地素材的项目'
+                        }
+                    ]
                 },
-                dontUnderstand: '看不懂',
                 chat: '聊天/反馈',
                 networkTools: '网络工具',
                 networkToolsPopup: {
@@ -619,33 +700,121 @@
                 }
             },
             en: {
-                title: 'AI Navigation - Your AI Resource Center',
-                subtitle: 'Making AI tools accessible to everyone',
+                title: 'liteai.top',
+                subtitle: 'Discover, Explore, and Use the Latest AI Tools',
+                understood: 'Got it',
+                dontUnderstand: "Don't Understand",
                 dialog: {
                     title: 'Chat',
-                    desc: 'Engage in natural conversations with advanced language models. Supporting both Chinese and English interactions for knowledge Q&A, creative writing, coding, and more.'
+                    desc: 'A chat interface like WeChat. AI can chat with you and help you learn how to use other tools.',
+                    tools: [
+                        {
+                            name: 'ChatGPT',
+                            link: 'https://chat.openai.com',
+                            description: 'More comprehensive, up-to-date, and mathematical. Great for search/reasoning'
+                        },
+                        {
+                            name: 'Claude',
+                            link: 'https://claude.ai',
+                            description: 'Stronger language understanding, ideal for literature/code'
+                        }
+                    ]
                 },
                 ppt: {
-                    title: 'PPT Generation',
-                    desc: 'Quickly generate professional presentations. Supporting various themes and templates with automatic layout and design to make your presentations more engaging.'
+                    title: 'PPT',
+                    desc: 'Dynamic presentations, turn pages with a click. Useful for lectures, summaries, and presentations.',
+                    tools: [
+                        {
+                            name: 'Gamma',
+                            link: 'https://gamma.app',
+                            description: 'Foreign'
+                        },
+                        {
+                            name: 'Islide',
+                            link: 'https://www.islide.cc/',
+                            description: 'Domestic'
+                        }
+                    ]
                 },
                 image: {
                     title: 'Image',
-                    desc: 'Like photos, you describe what you want with text, and it will create the image for you.'
+                    desc: 'Like photos, you describe with text, and it will generate the image for you.',
+                    tools: [
+                        {
+                            name: 'Recraft',
+                            link: 'https://recraft.ai',
+                            description: 'Currently the strongest text-to-image model, precise English text poster design'
+                        },
+                        {
+                            name: 'Flux',
+                            link: 'https://blackforestlabs.ai/',
+                            description: 'Photorealistic portraits'
+                        },
+                        {
+                            name: 'JiMeng',
+                            link: 'https://jimeng.jianying.com/ai-tool/image/generate',
+                            description: 'Chinese text poster generation'
+                        }
+                    ]
                 },
                 music: {
-                    title: 'Music',
-                    desc: 'Writes songs, creates accompaniment, or composes music for your lyrics.'
+                    title: 'Sound',
+                    desc: 'Singing, speaking. Composing lyrics and music, AI versions of singers and voices.',
+                    tools: [
+                        {
+                            name: 'Suno',
+                            link: 'https://suno.ai',
+                            description: 'Write lyrics and compose music, more natural in English'
+                        },
+                        {
+                            name: '11labs',
+                            link: 'https://elevenlabs.io',
+                            description: 'Voice cloning, multi-language dubbing'
+                        },
+                        {
+                            name: 'Hailuo',
+                            link: 'https://www.hailuo.ai/audio',
+                            description: 'Chinese dubbing, suitable for short videos'
+                        }
+                    ]
                 },
                 video: {
-                    title: 'Video',
-                    desc: 'Like TikTok videos, no filming needed. Just describe with text or images, and it creates the video.'
+                    title: 'Video Generation',
+                    desc: 'Like TikTok videos, no filming needed. Describe with text or images, and it creates the video.',
+                    tools: [
+                        { 
+                            name: 'Sora', 
+                            link: 'https://sora.com', 
+                            description: 'AI video generation with editing and effects. $20/month, $200/month for premium'
+                        },
+                        { 
+                            name: 'Kling AI', 
+                            link: 'https://klingai.kuaishou.com', 
+                            description: 'Realistic physics and lifelike character movements'
+                        }
+                    ]
                 },
                 dev: {
                     title: 'Development',
-                    desc: 'Writing code or programs to create apps like TikTok and WeChat, websites, or computer software.'
+                    desc: 'Writing code to create apps like TikTok and WeChat, websites, or computer software.',
+                    tools: [
+                        {
+                            name: 'v0',
+                            link: 'https://v0.dev',
+                            description: 'Aesthetically pleasing front-end development, can preview in real-time'
+                        },
+                        {
+                            name: 'bolt.new',
+                            link: 'https://bolt.new',
+                            description: 'Also can preview in real-time, can generate more complete project environments and file structures than v0'
+                        },
+                        {
+                            name: 'windsurf',
+                            link: 'https://codeium.com/windsurf',
+                            description: 'AI version of vscode, write complete projects that need to call local materials'
+                        }
+                    ]
                 },
-                dontUnderstand: "Don't Understand",
                 chat: 'Chat/Feedback',
                 networkTools: 'Network Tools',
                 networkToolsPopup: {
